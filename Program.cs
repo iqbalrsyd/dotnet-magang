@@ -10,6 +10,7 @@ using System;
 using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddSingleton<IWebHostEnvironment>(builder.Environment);
 
 // Konfigurasi koneksi ke database (misalnya menggunakan SQLite atau SQL Server)
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -23,8 +24,11 @@ var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:SecretKey"]);
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        options.RequireHttpsMetadata = false;
+        options.SaveToken = true;
         options.TokenValidationParameters = new TokenValidationParameters
         {
+            ValidateIssuerSigningKey = true,
             ValidateIssuer = false,
             ValidateAudience = false,
             ValidateLifetime = true,
@@ -55,7 +59,7 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
     c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
-});
+    });
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
